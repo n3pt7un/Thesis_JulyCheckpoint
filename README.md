@@ -34,6 +34,34 @@ Each observation aggregates telemetry into these behavioral indicators:
 ### Data Granularity Strategy
 The project maintains **corner-level, track-level, and session-level distinctions** to preserve meaningful differences in driving behavior rather than over-aggregating to season averages only.
 
+## 📁 Project Structure
+
+```
+├── main.py                     # CLI interface for data extraction
+├── two_stage_clustering.ipynb  # Interactive clustering analysis
+│
+├── Pipeline/                   # Data extraction and processing
+│   ├── telemetry_extraction.py    # Core spline alignment system  
+│   ├── corner_analysis.py         # Corner behavioral analysis
+│   ├── session_analysis.py        # Race session processing
+│   ├── track_analysis.py          # Circuit-specific analysis
+│   ├── data_aggregation.py        # Multi-level aggregation
+│   └── EXTRACTION_TECHNICAL_GUIDE.md  # Technical methodology
+│
+├── Clustering/                 # Machine learning pipeline
+│   ├── workflow.py                 # Complete clustering workflow
+│   ├── feature_engineering.py     # Feature matrix creation
+│   ├── kmeans_clustering.py       # Clustering algorithms
+│   ├── distance_metrics.py        # Distance calculations
+│   ├── optimization.py            # Cluster optimization
+│   └── analysis.py                # Results interpretation
+│
+├── cache/                      # FastF1 data cache (auto-generated)
+├── corner_data/               # Processed corner analysis data
+├── output/                    # Generated analysis results
+└── data_processing/           # Additional processing utilities
+```
+
 ## 🏗️ Architecture
 
 ### Core Modules
@@ -72,6 +100,57 @@ The project maintains **corner-level, track-level, and session-level distinction
 - **Behavioral Clusters**: 3 distinct driving behavior patterns identified
 - **Driver Style Groups**: 3 higher-level driver style archetypes
 - **Coverage**: 28 drivers, ~23 races per season, all circuit types
+
+
+## 🔧 Technical Methodology
+
+### Spline-Based Alignment System
+The core technical innovation addresses the fundamental challenge that **no two F1 laps are identical** - drivers take different racing lines, making raw distance measurements incomparable.
+
+**Solution Process:**
+1. **Reference Selection**: Use session's fastest lap as ideal racing line
+2. **Spline Creation**: Fit periodic cubic spline to (X,Y) coordinates  
+3. **Spatial Indexing**: Build k-d tree for efficient position mapping
+4. **Data Alignment**: Map all telemetry to common reference distance
+5. **Normalization**: Create comparable metrics across all drivers
+
+This ensures **every data point from every driver is mapped to a common frame of reference**, enabling meaningful statistical comparisons.
+
+### Feature Engineering Strategy
+- **Standardization**: Z-score normalization for all features
+- **Granularity Preservation**: Maintain corner/track/race distinctions
+- **Behavioral Focus**: Features capture driving style, not car performance
+- **Statistical Validity**: Aligned data enables proper cross-driver analysis
+
+### Clustering Validation
+- **Silhouette Analysis**: Optimal cluster count determination
+- **Interpretability**: Map clusters to real-world driving behaviors
+- **Cross-Validation**: Results consistent across multiple seasons
+- **Domain Knowledge**: Validate against known driver characteristics
+
+## 📈 Current Results Summary
+
+### Two-Stage Clustering Approach
+
+**Stage 1: Behavioral Clustering**
+- **Method**: Agglomerative clustering on standardized telemetry features
+- **Result**: 3 distinct behavioral clusters identified
+  - **Cluster 0** (61.1%): Dominant general driving pattern
+  - **Cluster 1** (29.9%): Alternative approach to cornering
+  - **Cluster 2** (9.1%): Specialized/extreme driving behaviors
+
+**Stage 2: Driver Style Profiling**  
+- **Method**: K-means clustering on driver-specific cluster usage profiles
+- **Result**: 3 driver style archetypes
+  - **Style Group 0**: Conservative/consistent drivers (VET, MSC, LAT, DOO)
+  - **Style Group 1**: Mainstream competitive group (VER, HAM, LEC, NOR, etc.)
+  - **Style Group 2**: Outlier/unique approach (BEA)
+
+### Key Findings
+- **Vettel** shows highest usage of Cluster 0 behavior (70% of observations)
+- **Piastri** demonstrates most frequent use of rare Cluster 2 behaviors (13% usage)
+- **Most drivers** fall into the mainstream competitive group with similar cluster usage patterns
+- **Clear separation** between conservative and aggressive cornering approaches
 
 ## 🚀 Quick Start
 
@@ -117,83 +196,6 @@ results = run_clustering_analysis(
 #### 3. Interactive Analysis
 The `two_stage_clustering.ipynb` notebook provides a complete interactive analysis workflow with visualizations.
 
-## 📈 Current Results Summary
-
-### Two-Stage Clustering Approach
-
-**Stage 1: Behavioral Clustering**
-- **Method**: Agglomerative clustering on standardized telemetry features
-- **Result**: 3 distinct behavioral clusters identified
-  - **Cluster 0** (61.1%): Dominant general driving pattern
-  - **Cluster 1** (29.9%): Alternative approach to cornering
-  - **Cluster 2** (9.1%): Specialized/extreme driving behaviors
-
-**Stage 2: Driver Style Profiling**  
-- **Method**: K-means clustering on driver-specific cluster usage profiles
-- **Result**: 3 driver style archetypes
-  - **Style Group 0**: Conservative/consistent drivers (VET, MSC, LAT, DOO)
-  - **Style Group 1**: Mainstream competitive group (VER, HAM, LEC, NOR, etc.)
-  - **Style Group 2**: Outlier/unique approach (BEA)
-
-### Key Findings
-- **Vettel** shows highest usage of Cluster 0 behavior (70% of observations)
-- **Piastri** demonstrates most frequent use of rare Cluster 2 behaviors (13% usage)
-- **Most drivers** fall into the mainstream competitive group with similar cluster usage patterns
-- **Clear separation** between conservative and aggressive cornering approaches
-
-## 📁 Project Structure
-
-```
-├── main.py                     # CLI interface for data extraction
-├── two_stage_clustering.ipynb  # Interactive clustering analysis
-│
-├── Pipeline/                   # Data extraction and processing
-│   ├── telemetry_extraction.py    # Core spline alignment system  
-│   ├── corner_analysis.py         # Corner behavioral analysis
-│   ├── session_analysis.py        # Race session processing
-│   ├── track_analysis.py          # Circuit-specific analysis
-│   ├── data_aggregation.py        # Multi-level aggregation
-│   └── EXTRACTION_TECHNICAL_GUIDE.md  # Technical methodology
-│
-├── Clustering/                 # Machine learning pipeline
-│   ├── workflow.py                 # Complete clustering workflow
-│   ├── feature_engineering.py     # Feature matrix creation
-│   ├── kmeans_clustering.py       # Clustering algorithms
-│   ├── distance_metrics.py        # Distance calculations
-│   ├── optimization.py            # Cluster optimization
-│   └── analysis.py                # Results interpretation
-│
-├── cache/                      # FastF1 data cache (auto-generated)
-├── corner_data/               # Processed corner analysis data
-├── output/                    # Generated analysis results
-└── data_processing/           # Additional processing utilities
-```
-
-## 🔧 Technical Methodology
-
-### Spline-Based Alignment System
-The core technical innovation addresses the fundamental challenge that **no two F1 laps are identical** - drivers take different racing lines, making raw distance measurements incomparable.
-
-**Solution Process:**
-1. **Reference Selection**: Use session's fastest lap as ideal racing line
-2. **Spline Creation**: Fit periodic cubic spline to (X,Y) coordinates  
-3. **Spatial Indexing**: Build k-d tree for efficient position mapping
-4. **Data Alignment**: Map all telemetry to common reference distance
-5. **Normalization**: Create comparable metrics across all drivers
-
-This ensures **every data point from every driver is mapped to a common frame of reference**, enabling meaningful statistical comparisons.
-
-### Feature Engineering Strategy
-- **Standardization**: Z-score normalization for all features
-- **Granularity Preservation**: Maintain corner/track/race distinctions
-- **Behavioral Focus**: Features capture driving style, not car performance
-- **Statistical Validity**: Aligned data enables proper cross-driver analysis
-
-### Clustering Validation
-- **Silhouette Analysis**: Optimal cluster count determination
-- **Interpretability**: Map clusters to real-world driving behaviors
-- **Cross-Validation**: Results consistent across multiple seasons
-- **Domain Knowledge**: Validate against known driver characteristics
 
 ## 📚 Documentation
 
